@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 
+// JWT VErification function
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -39,6 +40,19 @@ async function run() {
         const productCollection = client.db('horizonDb').collection("products");
         const userCollection = client.db('horizonDb').collection("users");
 
+        // Admin verification function
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next();
+            }
+            else {
+                res.status(403).send({ message: 'forbidden' });
+            }
+        }
+
+
         // Get all products
         app.get('/products', async (req, res) => {
             const query = {};
@@ -61,7 +75,7 @@ async function run() {
         });
 
         // Get all Users: only admin can access
-        app.get('/user', async (req, res) => {
+        app.get('/user', verifyJWT, verifyAdmin, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
