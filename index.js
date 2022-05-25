@@ -60,9 +60,17 @@ async function run() {
             }
         });
 
+        // Get User Role: whether an Admin or not.
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+        })
+
+        // User Info into the DB and Issue Token
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email);
             const user = req.body;
             const filter = { email: email };
             const options = { upsert: true };
