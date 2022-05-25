@@ -33,10 +33,14 @@ async function run() {
         // Get product by ID
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const product = await productCollection.findOne(query);
-            res.send(product);
-            // console.log({ products });
+            if (id === "undefined" || id === '') {
+                res.send({});
+            } else {
+                const query = { _id: ObjectId(id) };
+                const product = await productCollection.findOne(query);
+                res.send(product);
+            }
+
         });
 
     }
