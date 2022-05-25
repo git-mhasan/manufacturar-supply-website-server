@@ -60,7 +60,13 @@ async function run() {
             }
         });
 
-        // Get User Role: whether an Admin or not.
+        // Get all Users: only admin can access
+        app.get('/user', async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        });
+
+        // Get User Role: whether an Admin or not. useAdmin hook
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const user = await userCollection.findOne({ email: email });
