@@ -39,6 +39,7 @@ async function run() {
         await client.connect();
         const productCollection = client.db('horizonDb').collection("products");
         const userCollection = client.db('horizonDb').collection("users");
+        const orderCollection = client.db('horizonDb').collection("orders");
 
         // Admin verification function
         const verifyAdmin = async (req, res, next) => {
@@ -72,6 +73,13 @@ async function run() {
                 const product = await productCollection.findOne(query);
                 res.send(product);
             }
+        });
+
+        // Order Product
+        app.post('/order', verifyJWT, async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            return res.send({ success: true, result });
         });
 
         // Get all Users: only admin can access
