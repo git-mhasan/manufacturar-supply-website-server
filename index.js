@@ -85,11 +85,11 @@ async function run() {
         //Update a product after placing order
         app.put('/product/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const available = req.body;
+            const availableQuantity = req.body;
             const filter = { _id: Object(id) };
             const options = { upsert: true };
             const updateDoc = {
-                $set: product,
+                $set: availableQuantity,
             };
             const result = await productCollection.updateOne(filter, updateDoc, options);
             res.send(result);
