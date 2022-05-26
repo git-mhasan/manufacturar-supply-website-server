@@ -75,6 +75,26 @@ async function run() {
             }
         });
 
+        //Insert a new product
+        app.post('/product', verifyJWT, verifyAdmin, async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            return res.send({ success: true, result });
+        })
+
+        //Update a product after placing order
+        app.put('/product/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const available = req.body;
+            const filter = { _id: Object(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: product,
+            };
+            const result = await productCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
         // Order Product
         app.post('/order', verifyJWT, async (req, res) => {
             const order = req.body;
