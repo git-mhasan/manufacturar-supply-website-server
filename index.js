@@ -88,6 +88,44 @@ async function run() {
             res.send({ admin: isAdmin })
         })
 
+
+        //Set an user Admin by a current Admin.
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+
+        // Get user by Email
+        app.get('/user/profile/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            if (email === "undefined" || email === '') {
+                res.send({});
+            } else {
+                const query = { email: email };
+                const user = await userCollection.findOne(query);
+                res.send(user);
+            }
+        });
+
+        // Update Profile by user.
+        app.put('/user/profile/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const updatedUser = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: updatedUser,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
         // User Info into the DB and Issue Token
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -98,7 +136,7 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10h' })
             res.send({ result, token });
         });
     }
