@@ -86,7 +86,7 @@ async function run() {
         app.put('/product/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const availableQuantity = req.body;
-            const filter = { _id: Object(id) };
+            const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
             const updateDoc = {
                 $set: availableQuantity,
@@ -101,6 +101,43 @@ async function run() {
             const result = await orderCollection.insertOne(order);
             return res.send({ success: true, result });
         });
+
+        // Get all Order by email
+        app.get('/orders/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            if (email === "undefined" || email === '') {
+                res.send({});
+            } else {
+                const query = { userEmail: email };
+                const cursor = orderCollection.find(query);
+                const userOrder = await cursor.toArray();
+                res.send(userOrder);
+            }
+        });
+
+
+        // Get all Orders
+        app.get('/orders', verifyJWT, verifyAdmin, async (req, res) => {
+            const query = {};
+            const cursor = orderCollection.find(query);
+            const userOrder = await cursor.toArray();
+            res.send(userOrder);
+        });
+
+
+        //Update Shipment History by a current Admin.
+        app.put('/orders/ship/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const shipment = req.body;
+            console.log(shipment);
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: { shipment },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
 
         // Get all Users: only admin can access
         app.get('/user', verifyJWT, verifyAdmin, async (req, res) => {
