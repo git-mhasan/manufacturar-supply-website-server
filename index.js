@@ -129,12 +129,22 @@ async function run() {
         app.put('/orders/ship/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const shipment = req.body;
-            console.log(shipment);
             const filter = { _id: ObjectId(id) };
             const updateDoc = {
                 $set: { shipment },
             };
             const result = await orderCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+
+        //Delete Unpaid Order.
+        app.delete('/orders/ship/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            // const shipment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(filter);
+            console.log(result);
             res.send(result);
         })
 
