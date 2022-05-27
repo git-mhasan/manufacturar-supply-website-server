@@ -40,6 +40,7 @@ async function run() {
         const productCollection = client.db('horizonDb').collection("products");
         const userCollection = client.db('horizonDb').collection("users");
         const orderCollection = client.db('horizonDb').collection("orders");
+        const reviewCollection = client.db('horizonDb').collection("reviews");
 
         // Admin verification function
         const verifyAdmin = async (req, res, next) => {
@@ -95,6 +96,16 @@ async function run() {
             res.send(result);
         })
 
+
+        //Delete a product by Admin Only
+        app.delete('/product/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await productCollection.deleteOne(filter);
+            res.send(result);
+
+        })
+
         // Order Product
         app.post('/order', verifyJWT, async (req, res) => {
             const order = req.body;
@@ -141,12 +152,26 @@ async function run() {
         //Delete Unpaid Order.
         app.delete('/orders/ship/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            // const shipment = req.body;
             const filter = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(filter);
-            console.log(result);
             res.send(result);
         })
+
+        // Get all Reviews
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+            // console.log({ products });
+        });
+
+        // Add Review by User
+        app.post('/review', verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            return res.send({ success: true, result });
+        });
 
 
         // Get all Users: only admin can access
