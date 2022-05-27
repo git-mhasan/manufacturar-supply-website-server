@@ -127,6 +127,20 @@ async function run() {
         });
 
 
+        // Get an Order by id
+        app.get('/orders/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            // if (email === "undefined" || email === '') {
+            //     res.send({});
+            // } else {
+            const query = { _id: ObjectId(id) };
+            const singleOrder = await orderCollection.findOne(query);
+            res.send(singleOrder);
+            // }
+        });
+
+
         // Get all Orders
         app.get('/orders', verifyJWT, verifyAdmin, async (req, res) => {
             const query = {};
