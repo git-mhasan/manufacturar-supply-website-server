@@ -3,6 +3,9 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 require("dotenv").config();
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')('sk_test_51L3ysAHjBtoU7GQcCZMGgVMK2BMNgk0gmfAkjB1ns2A9lh6gqJzEkEcAqHsxlyYCkD6mEEJ2tcfl1GZ9rps6J2EA00Ej4hziit');
+
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -54,6 +57,18 @@ async function run() {
             }
         }
 
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const price = req.body;
+            // const price = order.totalPrice;
+            const { price: amount } = price;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
 
         // Get all products
         app.get('/products', async (req, res) => {
@@ -157,6 +172,20 @@ async function run() {
             res.send(result);
         })
 
+        //Payment history and TRX ID update to order
+        app.put('/order/payment/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    payment: payment.payment,
+                    trxId: payment.transactionId
+                },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
 
         //Delete Unpaid Order.
         app.delete('/orders/ship/:id', verifyJWT, async (req, res) => {
